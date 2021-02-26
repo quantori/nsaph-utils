@@ -12,7 +12,8 @@ Updated 2/26/2021, Ben Sabath
 
 - Interpolatation code: We have re-implemented the logic used for the 
   initial moving average interpolation used in the R based pipelines. 
-  Developing better metholdologies remains to be done.
+  Developing better metholdologies remains to be done. Based on spot checks
+  the results match those from the previous version.
   
  ## TODO
  
