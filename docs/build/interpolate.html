@@ -14,6 +14,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to NSAPH Utils’s documentation!" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -81,12 +82,15 @@ k is increased by one until the window has at least two non-missing values.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>num_vec</strong> – Numeric vector with some missing values</p></li>
-<li><p><strong>k</strong> – minimum number of observations on each side of hte missing value to include in the</p></li>
+<li><p><strong>k</strong> – minimum number of observations on each side of hte missing value to include in the
+weighted mean.</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a np.array where the missing values have been replaced by new values calculated from a
+rolling average imputation method.</p>
+</dd>
 </dl>
-<p>weighted mean.
-:return:</p>
 </dd></dl>
 
 </div>
@@ -108,11 +112,16 @@ k is increased by one until the window has at least two non-missing values.</p>
 
 
 <h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code for Basic Rolling Average Interpolation</a></li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to NSAPH Utils’s documentation!</a></li>
   </ul></li>
 </ul>
 </div>
