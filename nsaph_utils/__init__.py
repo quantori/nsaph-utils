@@ -1,1 +1,1 @@
-from .interpolate import interpolate
+from .interpolation import interpolate

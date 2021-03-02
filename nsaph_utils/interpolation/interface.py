@@ -12,7 +12,7 @@ def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: s
 
     :param data: A pandas data frame, containing geospatial data with missingness included
     :param interpolate_vars: list of variable names to interpolate
-    :param method: A string containing the intperolation method to use. Valid vales:
+    :param method: A string containing the interpolation method to use. Valid vales:
         - "ma": moving average method, see ``interpolate_ma``
     :param tvar: variable containing the time dimension
     :param by_var: single variable uniquely identifying each spatial division. If this information is contained
