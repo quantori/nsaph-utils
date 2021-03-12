@@ -1,9 +1,9 @@
-image: ruby:2.7
 
 stages:
   - build
 
 pages:
+  image: ruby:2.7
   stage: build
   script:
     - gem install bundler
@@ -16,6 +16,7 @@ pages:
       - public
 
 wheel:
+  image: python:2-alpine
   stage: build
   tags:
     - docker
