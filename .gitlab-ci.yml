@@ -1,10 +1,11 @@
 image: ruby:2.7
 
 stages:
-  - pages
-  - wheel
+  - doc
+  - build
 
 pages:
+  stage: doc
   script:
     - gem install bundler
     - bundle install
