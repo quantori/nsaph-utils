@@ -1,0 +1,25 @@
+image: ruby:2.7
+
+stages:
+  - pages
+  - wheel
+
+pages:
+  script:
+    - gem install bundler
+    - bundle install
+    - bundle exec jekyll build -d public
+  tags:
+    - docker
+  artifacts:
+    paths:
+      - public
+
+wheel:
+  stage: build
+  tags:
+    - docker
+  script: python setup.py bdist_wheel
+  artifacts:
+    paths:
+    - dist
