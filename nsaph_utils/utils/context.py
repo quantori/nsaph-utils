@@ -139,6 +139,17 @@ class Context:
         :param value: Value returned by argparse
         :return: value to use
         """
+        if attr == "years":
+            years = []
+            for y in value:
+                if ':' in y:
+                    x = y.split(':')
+                    y1 = int(x[0])
+                    y2 = int(x[1])
+                    years += range(y1, y2 + 1)
+                else:
+                    years.append(int(y))
+            return sorted(years)
         return value
 
     @classmethod
