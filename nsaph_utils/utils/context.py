@@ -99,6 +99,22 @@ class Context:
     and initialize them using command line arguments
     """
 
+    _years = Argument("years",
+                     aliases=['y'],
+                     cardinality=Cardinality.multiple,
+                     default="1990:2020",
+                     help="Year or list of years to download. For example, " +
+                        "the following argument: " +
+                        "`-y 1992:1995 1998 1999 2011 2015:2017` will produce " +
+                        "the following list: " +
+                        "[1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]"
+                     )
+    _compress = Argument("compress",
+                         aliases=['c'],
+                         cardinality=Cardinality.single,
+                         type=bool,
+                         default=True,
+                         help="Use gzip compression for the result")
     def __init__(self, subclass, description = None):
         """
         Creates a new object
@@ -109,6 +125,8 @@ class Context:
         :param description: Optional text to use as description.
             If not specified, then it is extracted from subclass documentation
         """
+        self.years = None
+        self.compress = None
         if description:
             self.description = description
         else:
