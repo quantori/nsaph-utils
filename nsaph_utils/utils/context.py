@@ -131,11 +131,16 @@ class Context:
             self.description = description
         else:
             self.description = subclass.__doc__
+
         self._attrs = [
+            attr[1:] for attr in Context.__dict__
+                if attr[0] == '_' and attr[1] != '_'
+        ]
+        self._attrs += [
             attr[1:] for attr in subclass.__dict__
                 if attr[0] == '_' and attr[1] != '_'
         ]
-        self.arguments = [getattr(subclass, '_'+attr) for attr in self._attrs]
+        self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
         parser = argparse.ArgumentParser(self.description)
         for arg in self.arguments:
             arg.add_to(parser)
