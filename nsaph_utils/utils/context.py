@@ -10,6 +10,7 @@ class Cardinality(Enum):
     """
     Cardinality of a configuration parameter: multiple or singular
     """
+
     single = "single"
     multiple = "multiple"
 
@@ -20,6 +21,7 @@ class Argument:
     This is practically, a more rigid format for
     :func ArgumentParser.add_argument:
     """
+
     def __init__(self, name,
                  help: str,
                  type = str,
@@ -28,6 +30,18 @@ class Argument:
                  cardinality: Cardinality = Cardinality.single,
                  valid_values = None
                  ):
+        """
+        All arguments are passed to Argparser
+
+        :param name:
+        :param help:
+        :param type:
+        :param aliases:
+        :param default:
+        :param cardinality:
+        :param valid_values:
+        """
+
         if aliases is None:
             aliases = []
         self.name = name
@@ -99,15 +113,16 @@ class Context:
     and initialize them using command line arguments
     """
 
-    _years = Argument("years",
+    _years = Argument("years", help="""
+         Year or list of years to download. For example, 
+         the following argument: 
+         `-y 1992:1995 1998 1999 2011 2015:2017` will produce 
+         the following list: 
+         [1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]
+    """,
                      aliases=['y'],
                      cardinality=Cardinality.multiple,
                      default="1990:2020",
-                     help="Year or list of years to download. For example, " +
-                        "the following argument: " +
-                        "`-y 1992:1995 1998 1999 2011 2015:2017` will produce " +
-                        "the following list: " +
-                        "[1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]"
                      )
     _compress = Argument("compress",
                          aliases=['c'],
@@ -115,9 +130,11 @@ class Context:
                          type=bool,
                          default=True,
                          help="Use gzip compression for the result")
+
     def __init__(self, subclass, description = None):
         """
         Creates a new object
+
         :param subclass: A concrete class containing configuration information
             Configuration options must be defined as class memebers with names,
             starting with one '_' characters and values be instances of
@@ -125,8 +142,17 @@ class Context:
         :param description: Optional text to use as description.
             If not specified, then it is extracted from subclass documentation
         """
+
         self.years = None
+        """
+         Year or list of years to download. For example, 
+         the following argument: 
+         `-y 1992:1995 1998 1999 2011 2015:2017` will produce 
+         the following list: 
+         [1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]
+        """
         self.compress = None
+        '''Specifies whether to use gzip compression for the result'''
         if description:
             self.description = description
         else:
@@ -141,6 +167,8 @@ class Context:
                 if attr[0] == '_' and attr[1] != '_'
         ]
         self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
+
+    def instantiate(self):
         parser = argparse.ArgumentParser(self.description)
         for arg in self.arguments:
             arg.add_to(parser)
@@ -148,6 +176,7 @@ class Context:
         args = parser.parse_args()
         for attr in self._attrs:
             setattr(self, attr, self.validate(attr, getattr(args, attr)))
+        return self
 
     def __str__(self):
         return "; ".join([
@@ -158,10 +187,12 @@ class Context:
         """
         Subclasses can override this method to implement custom handling
         of command line arguments
+
         :param attr: Command line argument name
         :param value: Value returned by argparse
         :return: value to use
         """
+
         if attr == "years":
             years = []
             for y in value:
@@ -184,5 +215,6 @@ class Context:
         :param s: name of a member in Enum class
         :return: value of the member
         """
+
         d = {e.name: e for e in enum_cls}
         return d[s]
