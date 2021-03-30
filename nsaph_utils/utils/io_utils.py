@@ -7,6 +7,7 @@ import tempfile
 import zipfile
 from datetime import datetime, timezone
 from typing import IO, List
+from abc import ABC, abstractmethod
 
 import requests
 from dateutil.parser import parse
@@ -44,7 +45,7 @@ class DownloadTask:
 
 def as_stream(url: str, extension: str = ".csv"):
     """
-    Returns teh content of URL as a stream. In case the content is in zip
+    Returns the content of URL as a stream. In case the content is in zip
     format (excluding gzip) creates a temporary file
 
     :param url: URL
@@ -184,5 +185,49 @@ def write_csv(reader: csv.DictReader,
         if (counter % 10000) == 0:
             print("*", end="")
     print()
+
+
+def count_lines(f):
+    with fopen(f, "r") as x:
+        return sum(1 for line in x)
+
+
+class Collector(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def writerow(self, data: List):
+        pass
+
+    def flush(self):
+        pass
+
+
+class CSVWriter(Collector):
+    def __init__(self, out_stream):
+        super().__init__()
+        self.out = out_stream
+        self.writer = csv.writer(out_stream,
+                                 delimiter=',',
+                                 quoting=csv.QUOTE_NONE)
+
+    def writerow(self, row: List):
+        self.writer.writerow(row)
+
+    def flush(self):
+        self.out.flush()
+
+
+class ListCollector(Collector):
+    def __init__(self):
+        super().__init__()
+        self.collection = []
+
+    def writerow(self, data: List):
+        self.collection.append(data)
+
+    def get_result(self):
+        return self.collection
 
 
