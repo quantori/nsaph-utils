@@ -28,7 +28,8 @@ class Argument:
                  aliases: List = None,
                  default = None,
                  cardinality: Cardinality = Cardinality.single,
-                 valid_values = None
+                 valid_values = None,
+                 required = True
                  ):
         """
         All arguments are passed to Argparser
@@ -54,6 +55,7 @@ class Argument:
         self.cardinality = cardinality
         self.description = help
         self.choices = valid_values
+        self.required_flag = required
 
         return
 
@@ -81,7 +83,7 @@ class Argument:
         return self.description
 
     def is_required(self):
-        return self.default is None
+        return self.default is None and self.required_flag
 
     def add_to(self, parser):
         args = ["--" + self.name]
