@@ -161,13 +161,15 @@ class Context:
             self.description = subclass.__doc__
 
         self._attrs = [
-            attr[1:] for attr in Context.__dict__
-                if attr[0] == '_' and attr[1] != '_'
-        ]
-        self._attrs += [
             attr[1:] for attr in subclass.__dict__
-                if attr[0] == '_' and attr[1] != '_'
+            if attr[0] == '_' and attr[1] != '_'
         ]
+
+        self._attrs += [
+            attr[1:] for attr in Context.__dict__
+            if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
+        ]
+
         self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
 
     def instantiate(self):
