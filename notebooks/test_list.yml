@@ -1,0 +1,21 @@
+-
+  name: test_1
+  severity: debug
+  condition: greater_than
+  variable: x
+  val: 69
+-
+  severity: warning
+  condition: data_type
+  val: str
+  variable: y
+-
+  severity: info
+  condition: no_missing
+  variable: w
+-
+  name: count missing vals
+  condition: count_missing
+  variable: z
+  severity: error
+  val: 99
