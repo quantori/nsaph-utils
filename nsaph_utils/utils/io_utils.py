@@ -2,6 +2,7 @@ import codecs
 import csv
 import gzip
 import io
+import json
 import os
 import tempfile
 import zipfile
@@ -10,6 +11,7 @@ from typing import IO, List
 from abc import ABC, abstractmethod
 
 import requests
+import yaml
 from dateutil.parser import parse
 from requests.models import Response
 
@@ -231,3 +233,21 @@ class ListCollector(Collector):
         return self.collection
 
 
+def as_dict(json_or_yaml_file: str) -> dict:
+    if isinstance(json_or_yaml_file, str) and os.path.isfile(json_or_yaml_file):
+        with open(json_or_yaml_file) as f:
+            ff = json_or_yaml_file.lower()
+            if ff.endswith(".json"):
+                content = json.load(f)
+            elif ff.endswith(".yml") or ff.endswith(".yaml"):
+                content = yaml.safe_load(f)
+            else:
+                raise Exception("Unsupported format for user request: {}"
+                                .format(json_or_yaml_file) +
+                                ". Supported formats are: JSON, YAML")
+    elif isinstance(json_or_yaml_file, dict):
+        content = json_or_yaml_file
+    else:
+        t = str(type(json_or_yaml_file))
+        raise Exception("Unsupported type of the specification: {}".format(t))
+    return content
