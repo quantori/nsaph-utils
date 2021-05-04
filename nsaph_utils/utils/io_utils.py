@@ -1,8 +1,10 @@
 import codecs
 import csv
+import datetime
 import gzip
 import io
 import json
+import logging
 import os
 import tempfile
 import zipfile
@@ -14,6 +16,10 @@ import requests
 import yaml
 from dateutil.parser import parse
 from requests.models import Response
+from rpy2.robjects import DataFrame
+
+from nsaph_utils.utils.pyfst import vector2list, FSTReader
+
 
 class DownloadTask:
     def __init__(self, destination: str, urls: List = None, metadata = None):
@@ -97,7 +103,8 @@ def fopen(path: str, mode: str):
     if isinstance(path, io.BufferedReader):
         return codecs.getreader("utf-8")(path)
     if path.lower().endswith(".gz"):
-        return io.TextIOWrapper(gzip.open(path, mode))
+        #return io.TextIOWrapper(gzip.open(path, mode))
+        return gzip.open(path, mode)
     if 'b' in mode:
         return open(path, mode)
     return open(path, mode, encoding="utf-8")
@@ -251,3 +258,52 @@ def as_dict(json_or_yaml_file: str) -> dict:
         t = str(type(json_or_yaml_file))
         raise Exception("Unsupported type of the specification: {}".format(t))
     return content
+
+
+def dataframe2csv(df: DataFrame, dest: str, append: bool):
+    t0 = datetime.datetime.now()
+    columns = {
+        df.colnames[c]: vector2list(df[c]) for c in range(df.ncol)
+    }
+    t1 = datetime.datetime.now()
+
+    if append:
+        mode = "at"
+    else:
+        mode = "wt"
+    with fopen(dest, mode) as output:
+        writer = csv.DictWriter(output, columns, quoting=csv.QUOTE_NONNUMERIC)
+        if not append:
+            writer.writeheader()
+        for r in range(df.nrow):
+            row = {
+                column: columns[column][r] for column in columns
+            }
+            writer.writerow(row)
+    t2 = datetime.datetime.now()
+    print("{} + {} = {}".format(str(t1-t0), str(t2-t1), str(t2-t0)))
+    return
+
+
+def fst2csv(path: str, buffer_size = 10000):
+    if not path.endswith(".fst"):
+        raise Exception("Unknown format of file " + path)
+    name = path[:-4]
+    dest = name + ".csv.gz"
+    n = 0
+    t0 = datetime.now()
+    with FSTReader(path, returns_mapping=True) as reader, fopen(dest, "wt") as output:
+        writer = csv.DictWriter(output, reader.columns, quoting=csv.QUOTE_NONNUMERIC)
+        writer.writeheader()
+        width = len(reader.columns)
+        for row in reader:
+            writer.writerow(row)
+            n += 1
+            if (n % buffer_size) == 0:
+                t2 = datetime.now()
+                rate = n / (t2 - t0).seconds
+                logging.info("Read {}: {:d} x {:d}; {} {:f} rows/sec".format(path, n, width, str(t2-t0), rate))
+    logging.info("Complete. Total read {}: {:d} x {:d}".format(path, width, n))
+    return
+
+
