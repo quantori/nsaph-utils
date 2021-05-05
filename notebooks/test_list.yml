@@ -14,8 +14,13 @@
   condition: no_missing
   variable: w
 -
-  name: count missing vals
   condition: count_missing
   variable: z
   severity: error
   val: 99
+-
+  name: pct_missing_check
+  condition: count_missing
+  variable: z
+  severity: info
+  val: 0.45

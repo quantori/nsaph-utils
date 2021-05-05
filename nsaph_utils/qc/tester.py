@@ -26,6 +26,11 @@ class Severity(Enum):
     warning = auto()
     error = auto()
 
+class ExpectationError(Exception):
+    """
+    Error for when an expected value to a condition cannot be valid
+    """
+    pass
 
 
 class Test:
@@ -45,10 +50,47 @@ class Test:
             if self.val:
                 self.name += "_" + str(self.val)
 
+        self._validate_test()
+        self.expectation = self._construct_expectation()
+
+    def _validate_test(self):
+        """
+        Confirm that inputs define a valid test
+        :return:
+        """
+        if self.condition == Condition.count_missing and self.val < 0:
+            raise ExpectationError(self.name + ": Count Missing conditions must expect at least 0 missing rows")
+
+    def _construct_expectation(self):
+        """
+        Phrase test expectation in words
+        :return: str
+        """
+        out = ""
+        out += self.name + ":" + self.severity.name + ": " + "For variable " + self.variable + ": "
+
+        if self.condition == Condition.count_missing:
+            if 0 < self.val < 1:
+                out += "less than " + "%2.2f" % (self.val * 100) + "% missing"
+            else:
+                out += "less than " + str(self.val) + " values missing"
+        elif self.condition == Condition.no_missing:
+            out += "no missing values"
+        elif self.condition == Condition.data_type:
+            out += "all values are " + self.val
+        elif self.condition == Condition.greater_than:
+            out += "all values greater than " + str(self.val)
+        elif self.condition == Condition.less_than:
+            out += "all values less than " +str(self.val)
+
+        return out
+
+
 
     def check(self, df: pd.DataFrame):
         """
         Check variable of input dataframe to see if it meets conditions
+
         :param df: Pandas data frame
         :return: boolean of if the data passed the test
         """
@@ -58,22 +100,34 @@ class Test:
 
         if self.condition == Condition.count_missing:
             count = sum(np.isnan(df[self.variable]))
-            result = count < self.val
-            if not result:
-                message = self.name+ ":" + self.severity.name + ": " + str(count) + \
-                          " missing values observed for " + self.variable
+            if 1 > self.val > 0:
+                # assume expectation is a %age
+                result = count/len(df.index) < self.val
+                if not result:
+                    message = self.expectation + ". " + "%2.2f" % (count/len(df.index) * 100) + \
+                              "% missing values observed for " + self.variable
+            else:
+                result = count < self.val
+                if not result:
+                    message = self.expectation + ". " + str(count) + \
+                              " missing values observed for " + self.variable
+
+        elif self.condition == Condition.data_type:
+            result = type(df.loc[0, self.variable]).__name__ == self.val
+
         else:
             if self.condition == Condition.less_than:
-                result = (df[self.variable] < self.val).all()
+                count = sum(df[self.variable] < self.val)
             elif self.condition == Condition.greater_than:
-                result = (df[self.variable] > self.val).all()
-            elif self.condition == Condition.data_type:
-                result = type(df.loc[0, self.variable]).__name__ == self.val
+                count = sum(df[self.variable] > self.val)
             elif self.condition == Condition.no_missing:
-                result = not np.isnan(df[self.variable]).any()
+                count = sum(np.isnan(df[self.variable]))
+
+            result = count == 0
 
             if not result:
-                message = self.name + ":" + self.severity.name + ": check failed"
+                message = self.expectation + ". check failed. " + "%2.2f" % (count/len(df.index) * 100) + \
+                          "% of observations with invalid values."
 
         if message:
             print(message)
@@ -102,5 +156,3 @@ class Tester:
 
         for t in self.tests:
             t.check(df)
-
-
