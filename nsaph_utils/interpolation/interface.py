@@ -29,7 +29,11 @@ def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: s
 
         for data_var in interpolate_vars:
             print("Interpolating", data_var)
+            id_count = 1
             for id_val in id_vals:
+                print("Interpolating Unit", id_count, "of", len(id_vals), "         ", end="\r")
                 data.loc[data[by_var] == id_val, data_var] = interpolate_ma(data[data[by_var] == id_val][data_var],
                                                                             ma_num)
+                id_count += 1
+            print()
 

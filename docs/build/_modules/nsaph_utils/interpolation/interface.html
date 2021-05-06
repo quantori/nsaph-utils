@@ -44,8 +44,8 @@
 <span class="sd">    methods are developed</span>
 
 <span class="sd">    :param data: A pandas data frame, containing geospatial data with missingness included</span>
-<span class="sd">    :param interpolate_vars: list of variable names to interpolation</span>
-<span class="sd">    :param method: A string containing the intperolation method to use. Valid vales:</span>
+<span class="sd">    :param interpolate_vars: list of variable names to interpolate</span>
+<span class="sd">    :param method: A string containing the interpolation method to use. Valid vales:</span>
 <span class="sd">        - &quot;ma&quot;: moving average method, see ``interpolate_ma``</span>
 <span class="sd">    :param tvar: variable containing the time dimension</span>
 <span class="sd">    :param by_var: single variable uniquely identifying each spatial division. If this information is contained</span>
@@ -62,9 +62,13 @@
 
         <span class="k">for</span> <span class="n">data_var</span> <span class="ow">in</span> <span class="n">interpolate_vars</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">data_var</span><span class="p">)</span>
+            <span class="n">id_count</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">id_val</span> <span class="ow">in</span> <span class="n">id_vals</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interpolating Unit&quot;</span><span class="p">,</span> <span class="n">id_count</span><span class="p">,</span> <span class="s2">&quot;of&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_vals</span><span class="p">),</span> <span class="s2">&quot;         &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">by_var</span><span class="p">]</span> <span class="o">==</span> <span class="n">id_val</span><span class="p">,</span> <span class="n">data_var</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolate_ma</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">by_var</span><span class="p">]</span> <span class="o">==</span> <span class="n">id_val</span><span class="p">][</span><span class="n">data_var</span><span class="p">],</span>
-                                                                            <span class="n">ma_num</span><span class="p">)</span></div>
+                                                                            <span class="n">ma_num</span><span class="p">)</span>
+                <span class="n">id_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="nb">print</span><span class="p">()</span></div>
 
 </pre></div>
 
