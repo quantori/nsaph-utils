@@ -156,3 +156,5 @@ class Tester:
 
         for t in self.tests:
             t.check(df)
+
+        print("Tests Completed")
