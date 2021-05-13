@@ -157,8 +157,6 @@ class Tester:
     def check(self, df: pd.DataFrame):
         out = True
         for t in self.tests:
-            out = out and t.check(df)
-
-
+            out = t.check(df) and out
         print("Tests Completed")
         return out
