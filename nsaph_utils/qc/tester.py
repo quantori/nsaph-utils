@@ -117,9 +117,9 @@ class Test:
 
         else:
             if self.condition == Condition.less_than:
-                count = sum(df[self.variable] < self.val)
-            elif self.condition == Condition.greater_than:
                 count = sum(df[self.variable] > self.val)
+            elif self.condition == Condition.greater_than:
+                count = sum(df[self.variable] < self.val)
             elif self.condition == Condition.no_missing:
                 count = sum(np.isnan(df[self.variable]))
 
@@ -139,6 +139,8 @@ class Tester:
     def __init__(self, name, yaml_file=None):
         self.name = name
         self.tests = []
+        if yaml_file:
+            self.load_yaml(yaml_file)
 
     def add(self, t: Test):
         self.tests.append(t)
@@ -153,8 +155,10 @@ class Tester:
             self.add(Test(**item))
 
     def check(self, df: pd.DataFrame):
-
+        out = True
         for t in self.tests:
-            t.check(df)
+            out = out and t.check(df)
+
 
         print("Tests Completed")
+        return out
