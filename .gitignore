@@ -2,3 +2,4 @@ nsaph-utils-env
 *.egg-info
 .idea
 *.pyc
+*.log
