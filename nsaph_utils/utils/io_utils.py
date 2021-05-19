@@ -51,17 +51,22 @@ class DownloadTask:
         return True
 
 
-def as_stream(url: str, extension: str = ".csv"):
+def as_stream(url: str, extension: str = ".csv", params = None, mode = None):
     """
     Returns the content of URL as a stream. In case the content is in zip
     format (excluding gzip) creates a temporary file
 
+    :param mode: optional parameter to specify desirable mode: text or binary.
+         Possible values: 't' or 'b'
+    :param params: Optional. A dictionary, list of tuples or bytes
+         to send as a query string.
     :param url: URL
     :param extension: optional, when the content is zip-encoded, the extension
         of the zip entry to return
     :return: Content of the URL or a zip entry
     """
-    response = requests.get(url, stream=True)
+
+    response = requests.get(url, stream=True, params=params)
     check_http_response(response)
     raw = response.raw
     if url.lower().endswith(".zip"):
@@ -75,8 +80,30 @@ def as_stream(url: str, extension: str = ".csv"):
         assert len(entries) == 1
         stream = io.TextIOWrapper(zfile.open(entries[0]))
     else:
-        stream = raw
+        if mode == 't':
+            stream = io.TextIOWrapper(raw)
+        else:
+            stream = raw
     return stream
+
+
+def as_content(url: str, params = None, mode = None):
+    """
+    Returns byte or text block with URL content
+
+    :param url: URL
+    :param params: Optional. A dictionary, list of tuples or bytes
+         to send as a query string.
+    :param mode: optional parameter to specify desirable return format:
+         text or binary. Possible values: 't' or 'b', default is binary
+    :return:  Content of the URL
+    """
+
+    response = requests.get(url, params=params)
+    check_http_response(response)
+    if mode == 't':
+        return response.text
+    return response.content
 
 
 def as_csv_reader(url: str):
@@ -118,7 +145,10 @@ def check_http_response(r: Response):
     :return: nothing, raises an exception if response is not OK
     """
     if not r.ok:
-        msg = "HTTP Response: {:d}; Reason: {}".format(r.status_code, r.reason)
+        reason = r.reason
+        if not reason:
+            reason = r.content
+        msg = "HTTP Response: {:d}; Reason: {}".format(r.status_code, reason)
         raise Exception(msg)
 
 
