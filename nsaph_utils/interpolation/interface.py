@@ -1,8 +1,10 @@
 # Code for wrapping the various interpolation functions
 from .interpolate_ma import interpolate_ma
 import pandas as pd
+import logging
 
 IMPLEMENTED_METHODS = ['ma']
+LOG = logging.getLogger(__name__)
 
 
 def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: str, by_var: str, ma_num: int = 4):
@@ -28,12 +30,14 @@ def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: s
         id_vals = data[by_var].unique()
 
         for data_var in interpolate_vars:
-            print("Interpolating", data_var)
+            LOG.info("Interpolating " + data_var)
             id_count = 1
             for id_val in id_vals:
-                print("Interpolating Unit", id_count, "of", len(id_vals), "         ", end="\r")
+                if id_count == 1 or id_count % 1000 == 0:
+                    LOG.info("Interpolating Unit " + str(id_count) +  "of ", str(len(id_vals)))
                 data.loc[data[by_var] == id_val, data_var] = interpolate_ma(data[data[by_var] == id_val][data_var],
                                                                             ma_num)
                 id_count += 1
-            print()
+
+    return True
 

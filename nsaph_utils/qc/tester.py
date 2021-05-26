@@ -8,6 +8,7 @@ from enum import Enum, auto
 import pandas as pd
 import numpy as np
 import yaml
+import logging
 
 
 class Condition(Enum):
@@ -21,10 +22,11 @@ class Condition(Enum):
 
 class Severity(Enum):
 
-    debug = auto()
-    info = auto()
-    warning = auto()
-    error = auto()
+    debug = logging.DEBUG
+    info = logging.INFO
+    warning = logging.WARNING
+    error = logging.ERROR
+    critical = logging.CRITICAL
 
 class ExpectationError(Exception):
     """
@@ -35,7 +37,7 @@ class ExpectationError(Exception):
 
 class Test:
 
-    def __init__(self, variable, condition, severity, val=None, name=None):
+    def __init__(self, variable, condition, severity, val=None, name=None, logger = None):
         self.variable = variable
         self.condition = condition
         self.val = val
@@ -50,8 +52,14 @@ class Test:
             if self.val:
                 self.name += "_" + str(self.val)
 
+        if logger:
+            self.__logger = logger
+        else:
+            self.__logger = logging.getLogger(__name__ + ".Test." + self.name)
+
         self._validate_test()
         self.expectation = self._construct_expectation()
+
 
     def _validate_test(self):
         """
@@ -130,7 +138,7 @@ class Test:
                           "% of observations with invalid values."
 
         if message:
-            print(message)
+            self.__logger.log(self.severity.value, message)
         return result
 
 
@@ -138,6 +146,7 @@ class Tester:
 
     def __init__(self, name, yaml_file=None):
         self.name = name
+        self._logger = logging.getLogger(__name__ + ".Tester." + self.name)
         self.tests = []
         if yaml_file:
             self.load_yaml(yaml_file)
@@ -152,6 +161,7 @@ class Tester:
         for item in test_list:
             item['condition'] = Condition[item['condition']]
             item['severity'] = Severity[item['severity']]
+            item['logger'] = self._logger
             self.add(Test(**item))
 
     def check(self, df: pd.DataFrame):

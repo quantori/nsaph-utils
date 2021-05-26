@@ -20,6 +20,8 @@ from rpy2.robjects import DataFrame
 
 from nsaph_utils.utils.pyfst import vector2list, FSTReader
 
+logger = logging.getLogger(__name__)
+
 
 class DownloadTask:
     def __init__(self, destination: str, urls: List = None, metadata = None):
@@ -333,7 +335,7 @@ def fst2csv(path: str, buffer_size = 10000):
                 t2 = datetime.now()
                 rate = n / (t2 - t0).seconds
                 logging.info("Read {}: {:d} x {:d}; {} {:f} rows/sec".format(path, n, width, str(t2-t0), rate))
-    logging.info("Complete. Total read {}: {:d} x {:d}".format(path, width, n))
+    logger.info("Complete. Total read {}: {:d} x {:d}".format(path, width, n))
     return
 
 

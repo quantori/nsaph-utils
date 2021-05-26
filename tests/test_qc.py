@@ -1,7 +1,9 @@
 import unittest
-from nsaph_utils.qc.tester import Tester, Test, Condition
+import nsaph_utils.qc
 import pandas as pd
 import numpy as np
+import os
+
 
 class QCTests(unittest.TestCase):
 
@@ -10,7 +12,7 @@ class QCTests(unittest.TestCase):
                                 "y": ["a" for a in range(100, 0, -1)],
                                 "z": [np.nan for a in range(100)],
                                 "w": [1 for a in range(100)]})
-        tester = Tester("test", yaml_file="test_data/test_list.yml")
+        tester = nsaph_utils.qc.Tester("test", yaml_file=os.path.dirname(__file__) + "/test_data/test_list.yml")
         self.assertFalse(tester.check(df))
 
         df = pd.DataFrame({"x": [70 for a in range(100)],
