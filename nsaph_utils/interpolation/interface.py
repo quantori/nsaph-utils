@@ -34,7 +34,7 @@ def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: s
             id_count = 1
             for id_val in id_vals:
                 if id_count == 1 or id_count % 1000 == 0:
-                    LOG.info("Interpolating Unit " + str(id_count) +  "of ", str(len(id_vals)))
+                    LOG.info("Interpolating Unit " + str(id_count) +  " of " + str(len(id_vals)))
                 data.loc[data[by_var] == id_val, data_var] = interpolate_ma(data[data[by_var] == id_val][data_var],
                                                                             ma_num)
                 id_count += 1

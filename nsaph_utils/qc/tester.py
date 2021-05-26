@@ -166,7 +166,16 @@ class Tester:
 
     def check(self, df: pd.DataFrame):
         out = True
+        num_tests = 0
+        num_failures = 0
         for t in self.tests:
-            out = t.check(df) and out
-        print("Tests Completed")
+            num_tests += 1
+            result = t.check(df)
+            out = out and result
+            if not result:
+                num_failures += 1
+
+        passes = num_tests - num_failures
+        self._logger.info("All Tests Completed. Out of " + str(num_tests) + " tests: " +
+                          str(passes) + " passed and " + str(num_failures) + " failed.")
         return out
