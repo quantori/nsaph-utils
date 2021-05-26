@@ -198,6 +198,8 @@ class Context:
         """
 
         if attr == "years":
+            if type(value) is str:
+                value = [value]
             years = []
             for y in value:
                 if ':' in y:
