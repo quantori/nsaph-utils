@@ -102,6 +102,8 @@ class Argument:
         }
         if action:
             kwargs['action'] = action
+        else:
+            kwargs["type"] = self.type
         if nargs:
             kwargs['nargs'] = nargs
         if self.choices:
