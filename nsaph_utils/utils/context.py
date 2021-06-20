@@ -203,6 +203,8 @@ class Context:
             if type(value) is str:
                 value = [value]
             years = []
+            if isinstance(value, str):
+                value = [value]
             for y in value:
                 if ':' in y:
                     x = y.split(':')
