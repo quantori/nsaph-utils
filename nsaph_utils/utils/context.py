@@ -110,6 +110,8 @@ class Argument:
             kwargs["choices"] = self.choices
         parser.add_argument(*args, **kwargs)
 
+    def __str__(self):
+        return "--" + self.name
 
 class Context:
     """
@@ -172,9 +174,9 @@ class Context:
             if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
         ]
 
-        self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
 
     def instantiate(self):
+        self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
         parser = argparse.ArgumentParser(self.description)
         for arg in self.arguments:
             arg.add_to(parser)
