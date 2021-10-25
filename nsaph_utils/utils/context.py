@@ -137,7 +137,9 @@ class Context:
                          default=True,
                          help="Use gzip compression for the result")
 
-    def __init__(self, subclass, description = None):
+    def __init__(self, subclass,
+                 description = None,
+                 include_default: bool = True):
         """
         Creates a new object
 
@@ -149,16 +151,18 @@ class Context:
             If not specified, then it is extracted from subclass documentation
         """
 
-        self.years = None
-        """
-         Year or list of years to download. For example, 
-         the following argument: 
-         `-y 1992:1995 1998 1999 2011 2015:2017` will produce 
-         the following list: 
-         [1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]
-        """
-        self.compress = None
-        '''Specifies whether to use gzip compression for the result'''
+        if include_default:
+            self.years = None
+            """
+             Year or list of years to download. For example, 
+             the following argument: 
+             `-y 1992:1995 1998 1999 2011 2015:2017` will produce 
+             the following list: 
+             [1992,1993,1994,1995,1998,1999,2011,2015,2016,2017]
+            """
+            self.compress = None
+            '''Specifies whether to use gzip compression for the result'''
+
         if description:
             self.description = description
         else:
