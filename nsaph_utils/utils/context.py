@@ -173,10 +173,11 @@ class Context:
             if attr[0] == '_' and attr[1] != '_'
         ]
 
-        self._attrs += [
-            attr[1:] for attr in Context.__dict__
-            if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
-        ]
+        if include_default:
+            self._attrs += [
+                attr[1:] for attr in Context.__dict__
+                if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
+            ]
 
 
     def instantiate(self):
