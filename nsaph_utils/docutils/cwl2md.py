@@ -40,7 +40,7 @@ def find_tool(content: Dict) -> str:
     return "[{}]({})".format(module, target)
 
 
-def document(path_to_cwl: str):
+def document(path_to_cwl: str, t_ref_mode: str):
     p = Path(path_to_cwl)
     name = os.path.basename(path_to_cwl)
     path_to_md = os.path.join(p.parents[2], "doc", "pipeline",
@@ -114,7 +114,7 @@ def document(path_to_cwl: str):
                 arg = steps[name]
                 doc = arg.get("doc", " ").replace('\n', ' ')
                 runs = arg["run"]
-                target = runs.replace(".cwl", ".md")
+                target = runs.replace(".cwl", "." + t_ref_mode)
                 print("|{name}|[{runs}]({target})|{desc}|"
                       .format(name=name, runs=runs, target=target, desc=doc),
                       file=md)
@@ -124,5 +124,9 @@ def document(path_to_cwl: str):
 
 
 if __name__ == '__main__':
-    document(sys.argv[1])
+    if len(sys.argv) > 2:
+        table_ref_mode = sys.argv[2]
+    else:
+        table_ref_mode = "md"
+    document(sys.argv[1], table_ref_mode)
 
