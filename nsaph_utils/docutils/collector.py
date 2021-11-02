@@ -49,6 +49,9 @@ class ModuleCollector:
 
 
 if __name__ == '__main__':
-    collector = ModuleCollector()
+    if len(sys.argv) > 2:
+        collector = ModuleCollector(sys.argv[2])
+    else:
+        collector = ModuleCollector()
     collector.collect(sys.argv[1])
 

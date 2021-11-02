@@ -33,7 +33,7 @@ def find_tool(content: Dict) -> str:
     if not module:
         return '`{}`'.format(" ".join(command))
     if module.startswith("nsaph.") or "/nsaph/" in module:
-        target = os.path.join("..",  "..", "..",
+        target = os.path.join("..", "..", "..", "..",
                               "platform", "doc", "members", name + ".html")
     else:
         target = os.path.join("..", "..", "src", "python", *path, name + ".py")

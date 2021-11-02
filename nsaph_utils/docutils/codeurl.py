@@ -14,13 +14,24 @@ class URLDomain(Domain):
         code_url = None
         if ".html" not in target and 'http' not in target and (
             target.endswith('py')
-            #or target.endswith('.cwl')
         ):
             code_url = self.link(target)
         if code_url is not None:
             print("Ref {}: {} ==> {}".format(fromdocname, target, code_url))
             contnode["refuri"] = code_url
             return [("code:module", contnode)]
+        if (".html" not in target and 'http' not in target) and (
+            "../nsaph/" in target
+        ):
+            base, ext = os.path.splitext(target)
+            if not ext or ext == ".md":
+                new_target = base + ".html"
+            else:
+                new_target = target
+            new_target = new_target.replace("../nsaph/", "../platform/")
+            print("Ref {}: {} ==> {}".format(fromdocname, target, new_target))
+            contnode["refuri"] = new_target
+            return [("md:module", contnode)]
         #print("XRef1 {}: {}".format(fromdocname, target))
         return []
 

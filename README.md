@@ -1,10 +1,27 @@
-## NSAPH Utils python package
+# NSAPH Utils python package
 
-This package is intended to hold python code that will be useful
+There are open questions about how best to structure this package that we can address
+(i.e. do we do multiple modules within this module, 1 single module, etc).
+     
+## Overview
+
+The nsaph_utils package is intended to hold python 
+code that will be useful
 across multiple portions of the NSAPH pipelines.
 
-There are open questions about how best to structure this that we can address
-(i.e. do we do multiple modules within this module, 1 single module, etc).
+The included utilities are developed to be as independent of
+specific infrastructure and execution environment as possible.
+
+Included utilities:
+
+* Interpolation code
+* Reading FST files from Python
+* various I/O wrappers
+* An API and CLI framework
+* QC Framework
+* Documentation utilities to simplify creation of consistent 
+ documentation for NSAPH platform 
+
 
 ## Current Development
 
