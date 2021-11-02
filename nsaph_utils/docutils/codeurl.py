@@ -49,6 +49,8 @@ class URLDomain(Domain):
         if len(x) < 2:
             return path
         x[1] = "html"
+        if "../nsaph/" in path:
+            return os.path.join("..", "..", "..", "platform", "doc", "members", '.'.join(x))
         if path.startswith('../'):
             return os.path.join("members", '.'.join(x))
         return os.path.join("doc", "members", '.'.join(x))
