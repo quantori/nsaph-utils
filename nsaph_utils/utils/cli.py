@@ -1,5 +1,5 @@
 import sys
-from utils.io_utils import fst2csv
+from nsaph_utils.utils.io_utils import fst2csv
 
 
 if __name__ == '__main__':
