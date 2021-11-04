@@ -1,15 +1,17 @@
 import codecs
 import csv
 import datetime
+import glob
 import gzip
 import io
 import json
 import logging
 import os
+import tarfile
 import tempfile
 import zipfile
 from datetime import datetime, timezone
-from typing import IO, List
+from typing import IO, List, Tuple, Callable
 from abc import ABC, abstractmethod
 
 import requests
@@ -337,5 +339,245 @@ def fst2csv(path: str, buffer_size = 10000):
                 logging.info("Read {}: {:d} x {:d}; {} {:f} rows/sec".format(path, n, width, str(t2-t0), rate))
     logger.info("Complete. Total read {}: {:d} x {:d}".format(path, width, n))
     return
+
+
+class SpecialValues:
+    NA = "NA"
+    NaN = "NaN"
+
+    @classmethod
+    def is_missing(cls, v) -> bool:
+        return v in [cls.NA, cls.NaN]
+
+    @classmethod
+    def is_untyped(cls, v) -> bool:
+        if not v:
+            return True
+        return cls.is_missing(v) or v in ['0']
+
+
+class CSVFileWrapper():
+    """
+    A wrapper around CSV reader that does:
+
+    * Counts characters and line read
+    * Logging of teh progress of the file being read
+    * Performs on-the-fly replacement of null and special
+      values
+    """
+
+    def __init__(self, file_like_object, sep = ',', null_replacement = SpecialValues.NA):
+        self.file_like_object = file_like_object
+        self.sep = sep
+        self.null_replacement = null_replacement
+        self.empty_string = self.sep + self.sep
+        self.null_string = self.sep + self.null_replacement + sep
+        self.empty_string_eol = self.sep + '\n'
+        self.null_string_eol = self.sep + self.null_replacement + '\n'
+        self.l = len(sep)
+        self.remainder = ""
+        self.line_number = 0
+        self.last_printed_line_number = 0
+        self.chars = 0
+
+    def __getattr__(self, called_method):
+        if called_method == "readline":
+            return self._readline
+        if called_method == "read":
+            return self._read
+        return getattr(self.file_like_object, called_method)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.file_like_object.close()
+
+    def _replace_empty(self, s: str):
+        while self.empty_string in s:
+            s = s.replace(self.empty_string, self.null_string)
+        s = s.replace(self.empty_string_eol, self.null_string_eol)
+        return s
+
+    def _readline(self):
+        line = self.file_like_object.readline()
+        self.line_number += 1
+        self.chars += len(line)
+        return self._replace_empty(line)
+
+    def _read(self, size, *args, **keyargs):
+        if (len(self.remainder) < size):
+            raw_buffer = self.file_like_object.read(size, *args, **keyargs)
+            buffer = raw_buffer
+            while buffer[-self.l:] == self.sep:
+                next_char = self.file_like_object.read(self.l)
+                buffer += next_char
+            buffer = self._replace_empty(buffer)
+        else:
+            raw_buffer = ""
+            buffer = raw_buffer
+        if self.remainder:
+            buffer = self.remainder + buffer
+            self.remainder = ""
+
+        if len(buffer) > size:
+            self.remainder = buffer[size - len(buffer):]
+            result = buffer[0:size]
+        else:
+            result = buffer
+
+        self.chars += len(result)
+        nl = result.count('\n')
+        self.line_number += nl
+        t = datetime.datetime.now()
+        if (self.line_number - self.last_printed_line_number) > 1000000:
+            if self.chars > 1000000000:
+                c = "{:7.2f}G".format(self.chars/1000000000.0)
+            elif self.chars > 1000000:
+                c = "{:6.2f}M".format(self.chars/1000000.0)
+            else:
+                c = str(self.chars)
+            dt = datetime.datetime.now() - t
+            t = datetime.datetime.now()
+            logging.info("{}: Processed {:,}/{} lines/chars [{}]"
+                  .format(str(t), self.line_number, c, str(dt)))
+            self.last_printed_line_number = self.line_number
+        return result
+
+
+def basename(path):
+    """
+    Returns a name without extension of a file or an
+    archive entry
+
+    :param path: a path to a file or archive entry
+    :return: base name without full path or extension
+    """
+
+    if isinstance(path, tarfile.TarInfo):
+        full_name = path.name
+    else:
+        full_name = str(path)
+    name, _ = os.path.splitext(os.path.basename(full_name))
+    return name
+
+
+def is_readme(name: str) -> bool:
+    """
+    Checks if a file is a documentation file
+    This method is used to extract some metadata from documentation
+    provided as markDOwn files
+
+    :param name:
+    :return:
+    """
+
+    name = name.lower()
+    if name.endswith(".md"):
+        return True
+    if name.startswith("readme"):
+        return True
+    if name.startswith("read.me"):
+        return True
+    if "readme" in name:
+        return True
+    return False
+
+
+def get_entries(path: str) -> Tuple[List,Callable]:
+    """
+    Returns a list of entries in an archive or files in
+    a directory
+
+    :param path: path to a directory or an archive
+    :return: Tuple with the list of entry names and a method
+    to open these entries for reading
+    """
+
+    if path.endswith(".tar") or path.endswith(".tgz") or path.endswith(
+            ".tar.gz"):
+        tfile = tarfile.open(path)
+        entries = [
+            e for e in tfile.getmembers()
+                if e.isfile() and not is_readme(e.name)
+        ]
+        f = lambda e: codecs.getreader("utf-8")(tfile.extractfile(e))
+    elif path.endswith(".zip"):
+        zfile = zipfile.ZipFile(path)
+        entries = [
+            e for e in zfile.namelist() if not is_readme(e)
+        ]
+        f = lambda e: io.TextIOWrapper(zfile.open(e))
+    elif os.path.isdir(path):
+        entries = [
+            filename for filename in glob.iglob(path + '**/**', recursive=True)
+            if os.path.isfile(filename) and not is_readme(filename)
+        ]
+        f = lambda e: fopen(e, "rt")
+    elif os.path.isfile(path):
+        entries = [path]
+        f = lambda e: fopen(e, "rt")
+    else:
+        entries = [path]
+        f = lambda e: e
+    return entries, f
+
+
+def get_readme(path:str):
+    """
+    Looks for a README file in the specified path
+    :param path: a path to a folder or an archive
+    :return: a file that is possibly a README file
+    """
+
+    encoding = "utf-8"
+    if path.endswith(".tar") or path.endswith(".tgz") or path.endswith(
+            ".tar.gz"):
+        tfile = tarfile.open(path, encoding=encoding)
+        readmes = [
+            tfile.extractfile(e).read().decode(encoding) for e in tfile.getmembers()
+                if e.isfile() and is_readme(e.name)
+        ]
+    elif path.endswith(".zip"):
+        zfile = zipfile.ZipFile(path)
+        readmes = [
+            io.TextIOWrapper(zfile.open(e)).read()
+                    for e in zfile.namelist() if is_readme(e)
+        ]
+    elif os.path.isdir(path):
+        files = os.listdir(path)
+        readmes = [f for f in files if is_readme(f)]
+    else:
+        readmes = None
+    if readmes:
+        return readmes[0]
+    return None
+
+
+def is_dir(path: str) -> bool:
+    """
+    Determine if a certain path specification refers
+        to a collection of files or a single entry.
+        Examples of collections are folders (directories)
+        and archives
+
+    :param path: path specification
+    :return: True if specification refers to a collection of files
+    """
+
+    return (path.endswith(".tar")
+            or path.endswith(".tgz")
+            or path.endswith(".tar.gz")
+            or path.endswith(".zip")
+            or os.path.isdir(path)
+    )
+
+
+def is_yaml_or_json(path: str) -> bool:
+    path = path.lower()
+    for ext in [".yml", ".yaml", ".json"]:
+        if path.endswith(ext) or path.endswith(ext + ".gz"):
+            return True
+    return  False
 
 
