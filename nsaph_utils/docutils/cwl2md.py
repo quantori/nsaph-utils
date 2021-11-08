@@ -43,8 +43,10 @@ def find_tool(content: Dict) -> str:
 def document(path_to_cwl: str, t_ref_mode: str):
     p = Path(path_to_cwl)
     name = os.path.basename(path_to_cwl)
-    path_to_md = os.path.join(p.parents[2], "doc", "pipeline",
-                              name.replace(".cwl", ".md"))
+    path_to_md_dir  = os.path.join(p.parents[2], "doc", "pipeline")
+    if not os.path.isdir(path_to_md_dir):
+        os.makedirs(path_to_md_dir, exist_ok=True)
+    path_to_md = os.path.join(path_to_md_dir, name.replace(".cwl", ".md"))
     with open(path_to_cwl, "rt") as yml:
         content = yaml.safe_load(yml)
         yml.seek(0)
