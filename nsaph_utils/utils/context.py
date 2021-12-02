@@ -2,6 +2,7 @@
 Utilities to create context and configuration objects
 """
 import argparse
+import datetime
 from enum import Enum
 from typing import List
 
@@ -128,7 +129,7 @@ class Context:
     """,
                      aliases=['y'],
                      cardinality=Cardinality.multiple,
-                     default="1990:2020",
+                     default="1990:{}".format(datetime.date.today().year),
                      )
     _compress = Argument("compress",
                          aliases=['c'],
