@@ -6,7 +6,7 @@ with open("README.md", "r") as readme:
 
 setup(
     name='nsaph_utils',
-    version="0.0.5.6",
+    version="0.0.5.7",
     url='https://gitlab-int.rc.fas.harvard.edu/rse/francesca_dominici/tools/nsaph_utils',
     license='',
     author='Ben Sabath',
@@ -16,6 +16,10 @@ setup(
     long_description_content_type = "text/markdown",
     #py_modules = [''],
     packages=find_packages(),
+    install_requires=[
+        'PyYAML',
+        'rpy2'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: Harvard University :: Development",
