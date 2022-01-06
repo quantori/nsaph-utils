@@ -37,7 +37,8 @@ import requests
 import yaml
 from dateutil.parser import parse
 from requests.models import Response
-from rpy2.robjects import DataFrame
+from rpy2.robjects import DataFrame, NA_Logical, NA_Real, NA_Integer, \
+    NA_Character, NA_Complex
 
 from nsaph_utils.utils.pyfst import vector2list, FSTReader
 
@@ -366,7 +367,15 @@ class SpecialValues:
 
     @classmethod
     def is_missing(cls, v) -> bool:
-        return v in [cls.NA, cls.NaN]
+        return v in [
+            cls.NA,
+            cls.NaN,
+            NA_Logical,
+            NA_Real,
+            NA_Integer,
+            NA_Character,
+            NA_Complex
+        ]
 
     @classmethod
     def is_untyped(cls, v) -> bool:
@@ -380,7 +389,7 @@ class CSVFileWrapper():
     A wrapper around CSV reader that does:
 
     * Counts characters and line read
-    * Logging of teh progress of the file being read
+    * Logging of the progress of the file being read
     * Performs on-the-fly replacement of null and special
       values
     """
