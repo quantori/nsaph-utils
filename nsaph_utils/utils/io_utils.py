@@ -143,6 +143,56 @@ def as_csv_reader(url: str):
     return reader
 
 
+def file_as_stream(filename: str, extension: str = ".csv", mode=None):
+    """
+    Returns the content of file as a stream. In case the content is in zip
+    format (excluding gzip) creates a temporary file
+
+    :param mode: optional parameter to specify desirable mode: text or binary.
+         Possible values: 't' or 'b'
+    :param filename: path to file
+    :param extension: optional, when the content is zip-encoded, the extension
+        of the zip entry to return
+    :return: Content of the file or a zip entry
+    """
+    if filename.lower().endswith(".zip"):
+        zfile = zipfile.ZipFile(filename)
+        entries = [
+            e for e in zfile.namelist() if e.endswith(extension)
+        ]
+        assert len(entries) == 1
+        stream = io.TextIOWrapper(zfile.open(entries[0]))
+
+    else:
+        try:
+            raw = open(filename, "b").read()
+        except IOError as e:
+            logger.exception("Cannot read %s: %s", filename, e)
+            raise
+
+        if mode == 't':
+            stream = io.TextIOWrapper(raw)
+        else:
+            stream = raw
+
+    return stream
+
+
+def file_as_csv_reader(filename: str):
+    """
+    An utility method to return the CSV content of the file as CSVReader
+
+    :param filename: path to file
+    :return: an instance of csv.DictReader
+    """
+    stream = file_as_stream(filename)
+    reader = csv.DictReader(
+        stream, quotechar='"', delimiter=',',
+        quoting=csv.QUOTE_NONNUMERIC, skipinitialspace=True,
+    )
+    return reader
+
+
 def fopen(path: str, mode: str):
     """
     A wrapper to open various types of files
