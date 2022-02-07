@@ -209,7 +209,7 @@ def is_downloaded(url: str, target: str, check_size: int = 0) -> bool:
         stat = os.stat(target)
         local_size = stat.st_size
         local_date = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
-        date_check = local_date > remote_date
+        date_check = local_date >= remote_date
         if check_size == 0:
             size_check = local_size == remote_size
         else:
