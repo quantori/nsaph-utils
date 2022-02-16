@@ -45,6 +45,21 @@ from nsaph_utils.utils.pyfst import vector2list, FSTReader
 logger = logging.getLogger(__name__)
 
 
+def sizeof_fmt(num, suffix="B") -> str:
+    if num is None:
+        return "Unknown"
+    units = ["", "K", "M", "G", "T", "P"]
+    for unit in units:
+        if unit == units[-1]:
+            fmt = f"{num:.1f}"
+        else:
+            fmt = f"{num:3.1f}"
+        if abs(num) < 1024.0 or unit == units[-1]:
+            return fmt + f"{unit}{suffix}"
+        num /= 1024.0
+    return "Error calculating size"
+
+
 class DownloadTask:
     def __init__(self, destination: str, urls: List = None, metadata = None):
         self.destination = destination
