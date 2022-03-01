@@ -16,6 +16,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+"""
+A reader for fixed width files (FWF) produced by SAS. Each record is returned
+in a way similar to the standard CSV reader, either as a list of objects
+or as a dictionary, where keys are column headers.
+
+To read the file, the application mus supply a list of columns.
+If a file is produced by SAS the columns are usually described in File
+Transfer Summary (FTS) file. However, FTS files are non-standard,
+therefore a universal parser for FTS files is not feasible to supply.
+"""
+
 import logging
 import os
 from typing import List, Tuple
@@ -23,15 +35,30 @@ from dateutil import parser as date_parser
 
 
 class FWFColumn:
+    """A class describing a column of a fixed width (FWF) file"""
+
     def __init__(self, order: int, name: str, type: str, start: int,
                  width: Tuple[int,int]):
         self.name = name
+        '''Name (header) of the column'''
+
         self.type = type
+        '''Type of the column. Supported types: NUM, CHAR, DATE '''
+
         self.ord = order
+        '''Ordinal number for the column'''
+
         self.start = start
+        '''Starting position for the column (in bytes)'''
+
         self.length = width[0]
+        '''Length of the column (in bytes)'''
+
         self.end = self.start + self.length
+        '''Ending  position for the column (in bytes)'''
+
         self.d = width[1]
+        '''Scale of the column for floating point numbers '''
 
     def __str__(self) -> str:
         return "{}:[{:d}-{:d}]".format(self.name,
@@ -41,31 +68,62 @@ class FWFColumn:
 
 
 class FWFMeta:
+    """Metadata for the FWF file"""
+
     def __init__(self, path: str, record_len: int,
                  columns: List[FWFColumn],
                  number_of_rows=None, size=None):
         self.rlen = record_len
+        """Record length, i.e. the length in bytes of the block for one record"""
+
         self.ncol = len(columns)
+        '''Number of columns'''
+
         self.nrows = number_of_rows
+        '''Number of rows, if given in teh file descriptor (can be None)'''
+
         self.size =  os.path.getsize(path)
+        '''File size in bytes'''
+
         if size is not None:
             #assert self.size == size
             logging.warning("Size mismatch: expected: {:,}; actual: {:,}"
                             .format(self.size, size))
         self.path = path
+        '''Physical path to the file on teh file system'''
+
         self.columns = columns
+        '''A list of FWFColumn instances, describing each column'''
+
         return
 
 
 class FWFReader:
+    """
+    Fixed width files (FWF) reader. Returns records in the same way
+    as standard CSV reader. Can return each record as either ;ist of values or
+    a dictionary with column headers as keys.
+    """
+
     def __init__(self, meta: FWFMeta, ret_dict: bool = False):
+        """
+        Constructor
+        :param meta: an instance of FWFMeta
+        :param ret_dict: boolean value, denoting whether to return each record
+         as a dictionary
+        """
+
         self.metadata = meta
         self.input = None
         self.rdict = ret_dict
         self.line = 0
         self.data= None
         self.good_lines = 0
+        '''Number of successfully read records'''
+
         self.bad_lines = 0
+        '''Number of records that have failed parsing'''
+
         self.nb = 1000
         self.nr = 0
         self.b = 0
@@ -193,6 +251,8 @@ class FWFReader:
 
 
 class FTSParseException(Exception):
+    """Exception raised when a record cannot be parsed"""
+
     def __init__(self, msg:str, pos:int):
         super(FTSParseException, self).__init__(msg, pos)
         self.pos = pos
