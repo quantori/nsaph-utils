@@ -85,7 +85,7 @@ class FWFMeta:
         self.size =  os.path.getsize(path)
         '''File size in bytes'''
 
-        if size is not None:
+        if (size is not None) and (self.size != size):
             #assert self.size == size
             logging.warning("Size mismatch: expected: {:,}; actual: {:,}"
                             .format(self.size, size))
