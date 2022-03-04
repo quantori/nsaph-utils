@@ -221,6 +221,8 @@ class FWFReader:
             rlen = self.metadata.rlen + self.eof_len
             # +2 for '\r\n'
             self.data = self.input.read(rlen * self.nb)
+            if len(self.data) == 0:
+                raise StopIteration()
             self.nr = len(self.data) / rlen
             self.b = 0
             self.record_start_pos = 0
