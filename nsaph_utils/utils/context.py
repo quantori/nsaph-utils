@@ -171,6 +171,7 @@ class Context:
             If not specified, then it is extracted from subclass documentation
         """
 
+        self.arguments = None
         if include_default:
             self.years = None
             """
@@ -199,17 +200,34 @@ class Context:
                 if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
             ]
 
-
     def instantiate(self):
         self.arguments = [getattr(self, '_'+attr) for attr in self._attrs]
+        return self._instantiate()
+
+    def set_empty_args(self):
+        self.arguments = [
+            getattr(self, '_'+attr) for attr in self._attrs
+            if getattr(self, attr) is None
+        ]
+        return self._instantiate()
+
+    def _instantiate(self):
         parser = argparse.ArgumentParser(self.description)
         for arg in self.arguments:
             arg.add_to(parser)
 
         args = parser.parse_args()
         for attr in self._attrs:
-            setattr(self, attr, self.validate(attr, getattr(args, attr)))
+            current = getattr(self, attr, None)
+            setattr(self, attr,
+                    self.validate(attr, getattr(args, attr, current))
+            )
         return self
+
+    def default(self):
+        for attr in self._attrs:
+            arg: Argument = getattr(self, '_'+attr)
+            setattr(self, attr, arg.default)
 
     def __str__(self):
         return "; ".join([
