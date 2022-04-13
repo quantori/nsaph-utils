@@ -133,6 +133,7 @@ class Argument:
     def __str__(self):
         return "--" + self.name
 
+
 class Context:
     """
     Generic class allowing to build context and configuration objects
@@ -190,14 +191,14 @@ class Context:
             self.description = subclass.__doc__
 
         self._attrs = [
-            attr[1:] for attr in subclass.__dict__
-            if attr[0] == '_' and attr[1] != '_'
+            field_name[1:] for field_name, field in subclass.__dict__.items()
+            if isinstance(field, Argument)
         ]
 
         if include_default:
             self._attrs += [
-                attr[1:] for attr in Context.__dict__
-                if attr[0] == '_' and attr[1] != '_' and attr[1:] not in self._attrs
+                field_name[1:] for field_name, field in Context.__dict__.items()
+                if isinstance(field, Argument) and field_name[1:] not in self._attrs
             ]
 
     def instantiate(self):
