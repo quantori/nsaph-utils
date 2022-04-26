@@ -145,14 +145,14 @@ def as_content(url: str, params = None, mode = None):
     return response.content
 
 
-def as_csv_reader(url: str):
+def as_csv_reader(url: str, mode = None) -> csv.DictReader:
     """
     An utility method to return the CSV content of the URL as CSVReader
 
     :param url: URL
     :return: an instance of csv.DictReader
     """
-    stream = as_stream(url)
+    stream = as_stream(url, mode=mode)
     reader = csv.DictReader(stream, quotechar='"', delimiter=',',
         quoting=csv.QUOTE_NONNUMERIC, skipinitialspace=True)
     return reader
@@ -237,7 +237,9 @@ def check_http_response(r: Response):
         reason = r.reason
         if not reason:
             reason = r.content
-        msg = "HTTP Response: {:d}; Reason: {}".format(r.status_code, reason)
+        msg = "{}: HTTP Response {:d}; Reason: {}".format(
+            r.url, r.status_code, reason
+        )
         raise Exception(msg)
 
 
