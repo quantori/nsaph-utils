@@ -16,11 +16,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
 # Code for wrapping the various interpolation functions
-from .interpolate_ma import interpolate_ma
-import pandas as pd
 import logging
+
+import pandas as pd
+from tqdm import tqdm
+
+from .interpolate_ma import interpolate_ma
 
 IMPLEMENTED_METHODS = ['ma']
 LOG = logging.getLogger(__name__)
@@ -50,13 +52,8 @@ def interpolate(data: pd.DataFrame, interpolate_vars: list, method: str, tvar: s
 
         for data_var in interpolate_vars:
             LOG.info("Interpolating " + data_var)
-            id_count = 1
-            for id_val in id_vals:
-                if id_count == 1 or id_count % 1000 == 0:
-                    LOG.info(("Interpolating Unit " + str(id_count) +  " of " + str(len(id_vals))))
+            for id_val in tqdm(id_vals):
                 data.loc[data[by_var] == id_val, data_var] = interpolate_ma(data[data[by_var] == id_val][data_var],
                                                                             ma_num)
-                id_count += 1
 
     return True
-

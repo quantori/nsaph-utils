@@ -18,7 +18,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'PyYAML',
-        'rpy2'
+        'rpy2',
+        'tqdm',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
