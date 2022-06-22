@@ -120,7 +120,7 @@ class CWLParser(Parser):
             if isinstance(runs, str):
                 target = runs.replace(".cwl", ".html")  # TODO make links
             else:
-                target = runs["baseCommand"]
+                target = runs.get("baseCommand", "command")
 
             data.append([name, runs, target, doc])
 
