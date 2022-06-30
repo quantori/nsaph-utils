@@ -17,7 +17,7 @@ class CWLParser(Parser):
     config_section_dependencies = ("parsers",)
 
     def parse(self, inputstring: str, document: nodes.document):
-        self.add_title(inputstring, document)
+        # self.add_title(inputstring, document)
 
         content = yaml.safe_load(inputstring)
         self.add_header(content, document)
