@@ -118,7 +118,8 @@ class CWLParser(Parser):
             doc = arg.get("doc", " ").replace('\n', ' ')
             runs = arg["run"]
             if isinstance(runs, str):
-                target = runs.replace(".cwl", ".html")  # TODO make links
+                refuri = runs.replace(".cwl", ".html")
+                target = nodes.reference(internal=False, refuri=refuri, text=refuri)
             else:
                 target = runs.get("baseCommand", "command")
 
@@ -163,8 +164,14 @@ class CWLParser(Parser):
         row = nodes.row()
         for cell in row_cells:
             entry = nodes.entry()
-            row.append(entry)
-            entry.append(nodes.paragraph(text=cell))
+            para = nodes.paragraph()
+            if type(cell) != str:
+                para += cell
+            else:
+                text = nodes.Text(cell)
+                para += text
+            entry += para
+            row += entry
         return row
 
 
