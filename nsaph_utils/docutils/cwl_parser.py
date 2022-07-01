@@ -165,7 +165,7 @@ class CWLParser(Parser):
         for cell in row_cells:
             entry = nodes.entry()
             para = nodes.paragraph()
-            if type(cell) != str:
+            if isinstance(cell, nodes.reference):
                 para += cell
             else:
                 text = nodes.Text(cell)
