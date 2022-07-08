@@ -1,5 +1,8 @@
 # NSAPH Utils python package
 
+<!-- toc -->
+<!-- tocstop -->
+
 There are open questions about how best to structure this package that we can address
 (i.e. do we do multiple modules within this module, 1 single module, etc).
      
