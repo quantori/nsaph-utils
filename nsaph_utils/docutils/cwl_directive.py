@@ -11,20 +11,17 @@ from .cwl_parser import CWLParser
 class CWLDirective(Directive):
     required_arguments = 1
     has_content = True
-    abs_path = None
 
     def run(self):
         parser = CWLParser()
         node = nodes.container()
         node.document = self.state.document
         doc = utils.new_document(self.content, settings=self.state.document.settings)
-        filename = self.arguments[0] + '.cwl'
 
-        for path in sys.path:
-            if 'epa/src' in path:
-                self.abs_path = os.path.join(path, 'cwl', filename)
+        current_path = self.state.document.current_source
+        cwl_path = current_path.replace('doc/pipeline', 'src/cwl').replace('.rst', '.cwl')
 
-        with open(self.abs_path) as f:
+        with open(cwl_path) as f:
             content = f.read()
 
         parser.parse(content, doc)
