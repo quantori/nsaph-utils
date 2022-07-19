@@ -67,6 +67,9 @@ class CWLParser(Parser):
         data = []
         for name in content["inputs"]:
             arg = content["inputs"][name]
+            if not arg:
+                continue
+
             if isinstance(arg, str):
                 doc = name
                 tp = arg.replace('?', '')
@@ -75,6 +78,7 @@ class CWLParser(Parser):
                 doc = arg.get("doc", " ").replace('\n', ' ')
                 tp = arg.get("type", "string").replace('?', '')
                 df = arg.get("default", None)
+
             if df is not None:
                 df = "`{}`".format(df)
             else:
@@ -97,7 +101,11 @@ class CWLParser(Parser):
         for name in content["outputs"]:
             arg = content["outputs"][name]
             doc = arg.get("doc", " ").replace('\n', ' ')
-            tp = arg.get("type", "string").replace('?', '')
+            tp = arg.get("type", "string")
+            if isinstance(tp, str):
+                tp = tp.replace('?', '')
+            elif isinstance(tp, dict):
+                tp = tp["type"]
             data.append([name, tp, doc])
 
         self._add_table_block(

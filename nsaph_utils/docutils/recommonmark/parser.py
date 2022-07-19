@@ -169,11 +169,7 @@ class CommonMarkParser(parsers.Parser):
         # or there is a scheme but it's not in the list of known_url_schemes,
         # then assume it's a cross-reference and pass it to Sphinx as an `:any:` ref.
 
-        print("RECOMMON ", mdnode.destination, "Fragment", url_check.fragment, "scheme_known", scheme_known)
-
-        #if not url_check.fragment and not scheme_known:
         if (not url_check.fragment and not scheme_known) or ('md' in destination and url_check.fragment):
-        #if True:
             wrap_node = addnodes.pending_xref(
                 reftarget=unquote(destination),
                 reftype='any',
