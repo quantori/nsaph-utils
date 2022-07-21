@@ -1,7 +1,7 @@
 NSAPH Core Data Platform
 ==========================================================
 
-`Documentation Home <../home.html>`_
+`Documentation Home <../../home.html>`_
 
 .. toctree::
    :maxdepth: 4
