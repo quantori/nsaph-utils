@@ -1,6 +1,6 @@
 # NSAPH Utils python package
 
-[Documentation Home](../../home.html)
+[Documentation Home](https://nsaph-data-platform.github.io/nsaph-platform-docs/home.html)
 
 There are open questions about how best to structure this package that we can address
 (i.e. do we do multiple modules within this module, 1 single module, etc).
