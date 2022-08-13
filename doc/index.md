@@ -1,7 +1,6 @@
 # NSAPH Utils python package
 
-<!-- toc -->
-<!-- tocstop -->
+[Documentation Home](../../home.html)
 
 There are open questions about how best to structure this package that we can address
 (i.e. do we do multiple modules within this module, 1 single module, etc).
@@ -35,7 +34,7 @@ Updated 2/26/2021, Ben Sabath
   Developing better metholdologies remains to be done. Based on spot checks
   the results match those from the previous version.
   
- ## TODO
+## TODO
  
  Updated 2/26/2021, Ben Sabath
  
@@ -43,5 +42,7 @@ Updated 2/26/2021, Ben Sabath
  - Creation of list of other useful general features
  - Review of already done development to see what would make sense to port to this package
 
-[NSAPH utils Documentation](https://nsaph-data-platform.github.io/nsaph-platform-docs/common/utils/)                                
-[Full Platform Documentation](https://nsaph-data-platform.github.io/nsaph-platform-docs/home.html)
+## Indices and tables
+
+* [](genindex)
+* [](modindex)
