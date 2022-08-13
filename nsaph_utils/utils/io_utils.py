@@ -441,7 +441,12 @@ class SpecialValues:
             NA_Real,
             NA_Integer,
             NA_Character,
-            NA_Complex
+            NA_Complex,
+            str(NA_Logical),
+            str(NA_Real),
+            str(NA_Integer),
+            str(NA_Character),
+            str(NA_Complex)
         ]
 
     @classmethod
