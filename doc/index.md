@@ -5,8 +5,7 @@
 There are open questions about how best to structure this package that we can address
 (i.e. do we do multiple modules within this module, 1 single module, etc).
 
-(utils-overview)=
-## Overview 
+## Overview of Utilities
 
 The nsaph_utils package is intended to hold python 
 code that will be useful
