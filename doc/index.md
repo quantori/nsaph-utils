@@ -4,8 +4,9 @@
 
 There are open questions about how best to structure this package that we can address
 (i.e. do we do multiple modules within this module, 1 single module, etc).
-     
-## Overview {#utils-overview}
+
+(utils-overview)=
+## Overview 
 
 The nsaph_utils package is intended to hold python 
 code that will be useful
@@ -42,7 +43,8 @@ Updated 2/26/2021, Ben Sabath
  - Creation of list of other useful general features
  - Review of already done development to see what would make sense to port to this package
 
-## Indices {#utils-indices}
+(utils-indices)=
+## Documentation Indices 
 
 * [](genindex)
 * [](modindex)
