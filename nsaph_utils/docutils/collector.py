@@ -47,6 +47,8 @@ class ModuleCollector:
         self.template = template
 
     def collect(self, source_path: str):
+        if not os.path.isdir(self.dest):
+            os.makedirs(self.dest, exist_ok=True)
         modules = glob.glob(os.path.join(source_path, self.pattern),
                             recursive=True)
         for module in modules:
