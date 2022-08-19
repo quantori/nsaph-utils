@@ -17,6 +17,7 @@ setup(
     #py_modules = [''],
     packages=find_packages(),
     install_requires=[
+        'deprecated',
         'PyYAML',
         'rpy2',
         'tqdm',
