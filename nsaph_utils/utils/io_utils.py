@@ -263,7 +263,7 @@ def is_downloaded(url: str, target: str, check_size: int = 0) -> bool:
         size is greater than the specified value. Specifying negative
         value will disable size check
     :param url: URL with data
-    :param target: Destination of teh downloads
+    :param target: Destination of the downloads
     :return: True if the destination file exists and is newer than
         URL content
     """

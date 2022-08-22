@@ -80,7 +80,7 @@ class FWFMeta:
         '''Number of columns'''
 
         self.nrows = number_of_rows
-        '''Number of rows, if given in teh file descriptor (can be None)'''
+        '''Number of rows, if given in the file descriptor (can be None)'''
 
         self.size =  os.path.getsize(path)
         '''File size in bytes'''
@@ -90,7 +90,7 @@ class FWFMeta:
             logging.warning("Size mismatch: expected: {:,}; actual: {:,}"
                             .format(self.size, size))
         self.path = path
-        '''Physical path to the file on teh file system'''
+        '''Physical path to the file on the file system'''
 
         self.columns = columns
         '''A list of FWFColumn instances, describing each column'''
