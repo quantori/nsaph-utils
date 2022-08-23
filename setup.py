@@ -12,9 +12,11 @@ setup(
     author='Ben Sabath',
     author_email='sabath@fas.harvard.edu',
     description='Common tools and utilities used by NSAPH pipelines and projects',
-    long_description = long_description,
-    long_description_content_type = "text/markdown",
-    #py_modules = [''],
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    entry_points={
+        'console_scripts': ['cwl2md=nsaph_utils.docutils.cwl2md:main'],
+    },
     packages=find_packages(),
     install_requires=[
         'deprecated',
@@ -25,5 +27,6 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: Harvard University :: Development",
-        "Operating System :: OS Independent"]
+        "Operating System :: OS Independent",
+    ],
 )

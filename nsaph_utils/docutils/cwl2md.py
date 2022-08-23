@@ -152,7 +152,7 @@ class CWLParser:
         self.md_file.add_table(data=data)
 
 
-if __name__ == '__main__':
+def main():
     args = arg_parser.parse_args()
     if args.verbose:
         logger.setLevel(logging.INFO)
