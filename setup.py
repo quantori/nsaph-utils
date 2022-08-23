@@ -15,7 +15,11 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     entry_points={
-        'console_scripts': ['cwl2md=nsaph_utils.docutils.cwl2md:main'],
+        'console_scripts': [
+            'cwl2md=nsaph_utils.docutils.cwl2md:main',
+            'copy_section=nsaph_utils.docutils.copy_section:main',
+            'collector=nsaph_utils.docutils.collector:main',
+        ],
     },
     packages=find_packages(),
     install_requires=[

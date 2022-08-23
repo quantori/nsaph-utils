@@ -168,3 +168,7 @@ def main():
 
         with open(input_file_path, 'r') as cwl_file:
             CWLParser(cwl_file.read(), output_file_path).parse()
+
+
+if __name__ == '__main__':
+    main()

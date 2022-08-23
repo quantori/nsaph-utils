@@ -75,12 +75,11 @@ def insert_section(source: str, to: str, project: str = None):
                     n = tokens.index("from")
                 except ValueError:
                     n = len(tokens)
-                if project != tokens[n+1]:
+                if project != tokens[n + 1]:
                     continue
                 section = ' '.join(tokens[1:n])
                 start = l1
-                end_of_section = "<!-- end of section {} from {} -->\n"\
-                    .format(section, project)
+                end_of_section = "<!-- end of section {} from {} -->\n".format(section, project)
                 continue
         if line == end_of_section:
             end = l1 + 1
@@ -89,7 +88,7 @@ def insert_section(source: str, to: str, project: str = None):
         raise ValueError("Not found")
     section_content = read_section(source, section)
     with open(to, "wt") as f:
-        for line in content[:start + 1]:
+        for line in content[: start + 1]:
             f.write(line)
         f.write("\n")
         for line in section_content:
@@ -102,9 +101,13 @@ def insert_section(source: str, to: str, project: str = None):
     return
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) > 3:
         prj = sys.argv[3]
     else:
         prj = None
     insert_section(sys.argv[1], sys.argv[2], prj)
+
+
+if __name__ == '__main__':
+    main()

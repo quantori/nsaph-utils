@@ -37,11 +37,7 @@ The {name} Module
 
 
 class ModuleCollector:
-
-    def __init__(self,
-                 destination: str = "doc/members",
-                 pattern = "**/*.py",
-                 template = m_template):
+    def __init__(self, destination: str = "doc/members", pattern="**/*.py", template=m_template):
         self.dest = destination
         self.pattern = pattern
         self.template = template
@@ -49,8 +45,7 @@ class ModuleCollector:
     def collect(self, source_path: str):
         if not os.path.isdir(self.dest):
             os.makedirs(self.dest, exist_ok=True)
-        modules = glob.glob(os.path.join(source_path, self.pattern),
-                            recursive=True)
+        modules = glob.glob(os.path.join(source_path, self.pattern), recursive=True)
         for module in modules:
             name = os.path.basename(module)
             name, _ = os.path.splitext(name)
@@ -71,10 +66,13 @@ class ModuleCollector:
         return
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) > 2:
         collector = ModuleCollector(sys.argv[2])
     else:
         collector = ModuleCollector()
     collector.collect(sys.argv[1])
 
+
+if __name__ == '__main__':
+    main()
