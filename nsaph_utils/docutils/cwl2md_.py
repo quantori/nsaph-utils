@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 from typing import Optional
 
@@ -6,17 +7,22 @@ import yaml
 
 from nsaph_utils.docutils.md_creator import MDCreator
 
+logger = logging.getLogger('script')
+logger.addHandler(logging.StreamHandler())
+
 arg_parser = argparse.ArgumentParser(description='Convert CWL files into Markdown')
 arg_parser.add_argument(
-    '--input-dir', '-i', type=str, required=True, dest='input_dir', help='An input dir with CWL files'
+    '-i', '--input-dir', type=str, required=True, dest='input_dir', help='An input dir with CWL files'
 )
 arg_parser.add_argument(
-    '--output-dir', '-o', type=str, required=True, dest='output_dir', help='An output dir for Markdown files'
+    '-o', '--output-dir', type=str, required=True, dest='output_dir', help='An output dir for Markdown files'
 )
+arg_parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='An extended logging')
 
 
 class CWLParser:
     def __init__(self, content: str, output_file_name: str):
+        logger.info(output_file_name)
         self.raw_content = content
         self.yaml_content = yaml.safe_load(content)
         self.output_file_name = output_file_name
@@ -148,6 +154,8 @@ class CWLParser:
 
 if __name__ == '__main__':
     args = arg_parser.parse_args()
+    if args.verbose:
+        logger.setLevel(logging.INFO)
 
     cwl_files = os.listdir(args.input_dir)
 
