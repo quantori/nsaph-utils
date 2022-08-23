@@ -1,153 +1,170 @@
-#  Copyright (c) 2021. Harvard University
-#
-#  Developed by Research Software Engineering,
-#  Faculty of Arts and Sciences, Research Computing (FAS RC)
-#  Author: Michael A Bouzinier
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
-
+import argparse
+import logging
 import os
-import sys
-from typing import Dict, Optional
-from pathlib import Path
+from typing import Optional
+
 import yaml
 
+from nsaph_utils.docutils.md_creator import MDCreator
 
-def find_tool(content: Dict) -> str:
-    if "baseCommand" not in content:
-        return ""
-    command = content["baseCommand"]
-    if command[0] != "python":
-        return '`{}`'.format(" ".join(command))
+logger = logging.getLogger('script')
+logger.addHandler(logging.StreamHandler())
 
-    module: str = None
-    for i in range(len(command) - 2):
-        if command[i+1] == '-m':
-            module = command[i+2]
-            break
-    if not module:
-        for c in command[1:]:
-            if not c.startswith('-'):
-                module = c
-                break
-
-    path = ""
-    if module.endswith(".py"):
-        name = os.path.basename(module)[:-3]
-    else:
-        x = module.split('.')
-        name = x[-1]
-        path = x[:-1]
-    if not module:
-        return '`{}`'.format(" ".join(command))
-    if module.startswith("nsaph.") or "/nsaph/" in module:
-        target = os.path.join("..", "..", "..", "..",
-                              "platform", "doc", "members", name + ".html")
-    else:
-        target = os.path.join("..", "..", "src", "python", *path, name + ".py")
-    return "[{}]({})".format(module, target)
+arg_parser = argparse.ArgumentParser(description='Convert CWL files into Markdown')
+arg_parser.add_argument(
+    '-i', '--input-dir', type=str, required=True, dest='input_dir', help='An input dir with CWL files'
+)
+arg_parser.add_argument(
+    '-o', '--output-dir', type=str, required=True, dest='output_dir', help='An output dir for Markdown files'
+)
+arg_parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='An extended logging')
 
 
-def document(path_to_cwl: str, t_ref_mode: str):
-    p = Path(path_to_cwl)
-    name = os.path.basename(path_to_cwl)
-    path_to_md_dir  = os.path.join(p.parents[2], "doc", "pipeline")
-    if not os.path.isdir(path_to_md_dir):
-        os.makedirs(path_to_md_dir, exist_ok=True)
-    path_to_md = os.path.join(path_to_md_dir, name.replace(".cwl", ".md"))
-    with open(path_to_cwl, "rt") as yml:
-        content = yaml.safe_load(yml)
-        yml.seek(0)
-        comments = [
-            line for line in yml if line.startswith("###")
+class CWLParser:
+    def __init__(self, content: str, output_file_name: str):
+        logger.info(output_file_name)
+        self.raw_content = content
+        self.yaml_content = yaml.safe_load(content)
+        self.output_file_name = output_file_name
+        self.md_file = MDCreator(file_name=self.output_file_name)
+
+    def parse(self):
+        self._add_title()
+        self._add_contents()
+        self._add_header()
+        self._add_docs()
+        self._add_inputs()
+        self._add_outputs()
+        self._add_steps()
+
+        self.md_file.save()
+
+    def _add_title(self):
+        title = self._find_title(self.raw_content) or self._get_filename(self.output_file_name)
+        self.md_file.add_header(text=title, level=1)
+
+    @staticmethod
+    def _find_title(content: str) -> Optional[str]:
+        for line in content.splitlines():
+            if line.startswith('###'):
+                return line.replace('###', '').strip()
+
+    @staticmethod
+    def _get_filename(output_file_name: str) -> str:
+        filename = output_file_name.split(os.path.sep)[-1]
+        return filename.replace('.md', '.cwl')
+
+    def _add_contents(self):
+        contents = [
+            '```{contents}',
+            '---',
+            'local:',
+            '---',
+            '```',
         ]
-        title = comments[0][3:].strip()
-        tool = find_tool(content)
 
-    with open (path_to_md, "wt") as md:
-        print("# {}".format(title), file=md)
-        if "tool" in content["class"].lower():
-            print("**Tool** \t{}".format(tool), file=md)
-        elif "workflow" in content["class"].lower():
-            print("**Workflow**", file=md)
-        print(file=md)
-        src_path = os.path.relpath(path_to_cwl, os.path.dirname(path_to_md))
-        print("**Source**: [{}]({})".format(name, src_path), file=md)
-        print(file=md)
-        print("<!-- toc -->", file=md)
-        print(file=md)
-        if "doc" in content:
-            print("## Description", file=md)
-            print(content["doc"], file=md)
-            print(file=md)
-        if "inputs" in content:
-            print("## Inputs", file=md)
-            print(file=md)
-            print("| Name | Type | Default | Description |", file=md)
-            print("|------|------|---------|-------------|", file=md)
-            for name in content["inputs"]:
-                arg = content["inputs"][name]
-                doc = arg.get("doc", " ").replace('\n', ' ')
-                tp = arg.get("type", "string").replace('?', '')
-                df = arg.get("default", None)
-                if df is not None:
-                    df = "`{}`".format(df)
-                else:
-                    df = " "
+        self.md_file.add_text('\n'.join(contents))
 
-                print("|{name}|{type}|{default}|{desc}|"
-                      .format(name=name, type=tp, default=df, desc=doc),
-                      file=md)
+    def _add_header(self):
+        if 'tool' in self.yaml_content['class'].lower():
+            header = '**Tool** ' + self._extract_tool(str(self.yaml_content['baseCommand']))
+        elif 'workflow' in self.yaml_content['class'].lower():
+            header = '**Workflow**'
+        else:
+            header = '**Unknown class**'
 
-        if "outputs" in content:
-            print(file=md)
-            print("## Outputs", file=md)
-            print(file=md)
-            print("| Name | Type | Description |", file=md)
-            print("|------|------|-------------|", file=md)
-            for name in content["outputs"]:
-                arg = content["outputs"][name]
-                doc = arg.get("doc", " ").replace('\n', ' ')
-                tp = arg.get("type", "string").replace('?', '')
-                print("|{name}|{type}|{desc}|"
-                      .format(name=name, type=tp, desc=doc),
-                      file=md)
+        self.md_file.add_text(header)
 
-        if "steps" in content:
-            steps = content["steps"]
-            print(file=md)
-            print("## Steps", file=md)
-            print(file=md)
-            print("| Name | Runs | Description |", file=md)
-            print("|------|------|-------------|", file=md)
-            for name in steps:
-                arg = steps[name]
-                doc = arg.get("doc", " ").replace('\n', ' ')
-                runs = arg["run"]
-                target = runs.replace(".cwl", "." + t_ref_mode)
-                print("|{name}|[{runs}]({target})|{desc}|"
-                      .format(name=name, runs=runs, target=target, desc=doc),
-                      file=md)
+    @staticmethod
+    def _extract_tool(base_command: str) -> str:
+        tool = base_command.replace('[', '').replace(']', '').replace("'", '').split(', ')[-1]
+        return f'[]({tool})'
 
-    os.system(" ~/node_modules/.bin/markdown-toc -i {}".format(path_to_md))
-    return 
+    def _add_docs(self):
+        self.md_file.add_header(text='Description', level=2)
+        self.md_file.add_text(self.yaml_content['doc'])
+
+    def _add_inputs(self):
+        self.md_file.add_header(text='Inputs', level=2)
+
+        data = [('Name', 'Type', 'Default', 'Description')]
+        for name, arg in self.yaml_content['inputs'].items():
+            if isinstance(arg, str):
+                doc = name
+                tp = arg.replace('?', '')
+                df = None
+            else:
+                doc = arg.get('doc', ' ').replace('\n', ' ')
+                tp = arg.get('type', 'string')
+                df = arg.get('default', None)
+
+            if df is not None:
+                df = f'`{df}`'
+            else:
+                df = ' '
+
+            data.append((name, tp, df, doc))
+
+        self.md_file.add_table(data=data)
+
+    def _add_outputs(self):
+        self.md_file.add_header(text='Outputs', level=2)
+
+        data = [('Name', 'Type', 'Description')]
+        for name, arg in self.yaml_content['outputs'].items():
+            doc = arg.get('doc', ' ').replace('\n', ' ')
+            tp = arg.get('type', 'string')
+
+            if isinstance(tp, str):
+                tp = tp.replace('?', '')
+            elif isinstance(tp, dict):
+                tp = tp['type']
+
+            data.append((name, tp, doc))
+
+        self.md_file.add_table(data=data)
+
+    def _add_steps(self):
+        if 'steps' not in self.yaml_content:
+            return
+
+        self.md_file.add_header(text='Steps', level=2)
+
+        data = [('Name', 'Runs', 'Target', 'Description')]
+        for item in self.yaml_content['steps']:
+            if isinstance(item, dict):
+                name = item['id']
+                arg = item
+            else:
+                name = item
+                arg = self.yaml_content['steps'][name]
+
+            doc = arg.get('doc', ' ').replace('\n', ' ')
+            runs = arg['run']
+            if isinstance(runs, str):
+                ref_uri = runs.replace(".cwl", ".md")
+                target = f'[{runs}]({ref_uri})'
+            else:
+                target = runs.get('baseCommand', 'command')
+
+            data.append((name, runs, target, doc))
+
+        self.md_file.add_table(data=data)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        table_ref_mode = sys.argv[2]
-    else:
-        table_ref_mode = "md"
-    document(sys.argv[1], table_ref_mode)
+    args = arg_parser.parse_args()
+    if args.verbose:
+        logger.setLevel(logging.INFO)
 
+    cwl_files = os.listdir(args.input_dir)
+
+    for file_name in cwl_files:
+        if os.path.splitext(file_name)[1].lower() != '.cwl':
+            continue
+
+        input_file_path = os.path.join(os.path.abspath(args.input_dir), file_name)
+        output_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '.md'))
+
+        with open(input_file_path, 'r') as cwl_file:
+            CWLParser(cwl_file.read(), output_file_path).parse()
