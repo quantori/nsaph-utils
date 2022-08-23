@@ -149,7 +149,7 @@ class CWLParser:
 
         self.md_file.add_header(text='Steps', level=2)
 
-        data = [('Name', 'Runs', 'Target', 'Description')]
+        data = [('Name', 'Runs', 'Description')]
         for item in self.yaml_content['steps']:
             if isinstance(item, dict):
                 name = item['id']
@@ -166,7 +166,7 @@ class CWLParser:
             else:
                 target = runs.get('baseCommand', 'command')
 
-            data.append((name, runs, target, doc))
+            data.append((name, target, doc))
 
         self.md_file.add_table(data=data)
 
