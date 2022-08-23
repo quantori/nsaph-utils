@@ -20,6 +20,7 @@
 import argparse
 import logging
 import os
+import subprocess
 from typing import Optional
 
 import yaml
@@ -40,15 +41,22 @@ arg_parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', 
 
 
 class CWLParser:
-    def __init__(self, content: str, output_file_name: str):
-        logger.info(output_file_name)
-        self.raw_content = content
-        self.yaml_content = yaml.safe_load(content)
-        self.output_file_name = output_file_name
-        self.md_file = MDCreator(file_name=self.output_file_name)
+    def __init__(self, input_file_path: str, output_file_path: str, image_file_path: str):
+        logger.info(output_file_path)
+        self.input_file_path = input_file_path
+
+        with open(input_file_path, 'r') as cwl_file:
+            self.raw_content = cwl_file.read()
+
+        self.yaml_content = yaml.safe_load(self.raw_content)
+        self.output_file_path = output_file_path
+        self.image_file_path = image_file_path
+
+        self.md_file = MDCreator(file_name=self.output_file_path)
 
     def parse(self):
         self._add_title()
+        self._add_image()
         self._add_contents()
         self._add_header()
         self._add_docs()
@@ -59,7 +67,7 @@ class CWLParser:
         self.md_file.save()
 
     def _add_title(self):
-        title = self._find_title(self.raw_content) or self._get_filename(self.output_file_name)
+        title = self._find_title(self.raw_content) or self._get_filename(self.output_file_path)
         self.md_file.add_header(text=title, level=1)
 
     @staticmethod
@@ -69,8 +77,8 @@ class CWLParser:
                 return line.replace('###', '').strip()
 
     @staticmethod
-    def _get_filename(output_file_name: str) -> str:
-        filename = output_file_name.split(os.path.sep)[-1]
+    def _get_filename(output_file_path: str) -> str:
+        filename = output_file_path.split(os.path.sep)[-1]
         return filename.replace('.md', '.cwl')
 
     def _add_contents(self):
@@ -83,6 +91,16 @@ class CWLParser:
         ]
 
         self.md_file.add_text('\n'.join(contents))
+
+    def _add_image(self):
+        if 'workflow' not in self.yaml_content['class'].lower():
+            return
+
+        subprocess.run(
+            f'cwl-runner --print-dot {self.input_file_path} | dot -Tpng > {self.image_file_path}', shell=True
+        )
+        filename = self.image_file_path.split(os.path.sep)[-1]
+        self.md_file.add_image(filename)
 
     def _add_header(self):
         if 'tool' in self.yaml_content['class'].lower():
@@ -108,19 +126,18 @@ class CWLParser:
 
         data = [('Name', 'Type', 'Default', 'Description')]
         for name, arg in self.yaml_content['inputs'].items():
+            doc = tp = df = ''
+
             if isinstance(arg, str):
                 doc = name
                 tp = arg.replace('?', '')
                 df = None
-            else:
+            elif isinstance(arg, dict):
                 doc = arg.get('doc', ' ').replace('\n', ' ')
                 tp = arg.get('type', 'string')
                 df = arg.get('default', None)
 
-            if df is not None:
-                df = f'`{df}`'
-            else:
-                df = ' '
+            df = f'`{df}`' if df else ' '
 
             data.append((name, tp, df, doc))
 
@@ -184,9 +201,9 @@ def main():
 
         input_file_path = os.path.join(os.path.abspath(args.input_dir), file_name)
         output_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '.md'))
+        image_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '_cwl.png'))
 
-        with open(input_file_path, 'r') as cwl_file:
-            CWLParser(cwl_file.read(), output_file_path).parse()
+        CWLParser(input_file_path, output_file_path, image_file_path).parse()
 
 
 if __name__ == '__main__':

@@ -70,3 +70,6 @@ class MDCreator:
     @staticmethod
     def _calculate_column_widths(data: Iterable[Iterable[str]]) -> List[int]:
         return list(map(len, map(lambda column: max(column, key=len), zip(*data))))
+
+    def add_image(self, image_file_path: str):
+        self.file.write(f'![]({image_file_path})\n\n')
