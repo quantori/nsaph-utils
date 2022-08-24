@@ -118,6 +118,9 @@ class CWLParser:
         return f'[]({tool})'
 
     def _add_docs(self):
+        if 'doc' not in self.yaml_content:
+            return
+
         self.md_file.add_header(text='Description', level=2)
         self.md_file.add_text(self.yaml_content['doc'])
 
