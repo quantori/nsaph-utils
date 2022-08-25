@@ -2,7 +2,7 @@
 #
 #  Developed by Research Software Engineering,
 #  Faculty of Arts and Sciences, Research Computing (FAS RC)
-#  Author: Eugene Pokidov
+#  Authors: Michael Bouzinier, Eugene Pokidov
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
