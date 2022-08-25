@@ -2,7 +2,7 @@
 #
 #  Developed by Research Software Engineering,
 #  Faculty of Arts and Sciences, Research Computing (FAS RC)
-#  Author: Michael A Bouzinier
+#  Author: Eugene Pokidov
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import argparse
 import logging
 import os
 import subprocess
-from typing import Optional
+import tempfile
+from typing import Any, Dict, Optional
 
 import yaml
 
 from nsaph_utils.docutils.md_creator import MDCreator
+
 
 logger = logging.getLogger('script')
 logger.addHandler(logging.StreamHandler())
@@ -53,6 +55,7 @@ class CWLParser:
         self.image_file_path = image_file_path
 
         self.md_file = MDCreator(file_name=self.output_file_path)
+        self.sub_workflow_counter = 0
 
     def parse(self):
         self._add_title()
@@ -67,7 +70,7 @@ class CWLParser:
         self.md_file.save()
 
     def _add_title(self):
-        title = self._find_title(self.raw_content) or self._get_filename(self.output_file_path)
+        title = self._find_title(self.raw_content) or self._get_filename(self.output_file_path.replace('.md', '.cwl'))
         self.md_file.add_header(text=title, level=1)
 
     @staticmethod
@@ -77,9 +80,8 @@ class CWLParser:
                 return line.replace('###', '').strip()
 
     @staticmethod
-    def _get_filename(output_file_path: str) -> str:
-        filename = output_file_path.split(os.path.sep)[-1]
-        return filename.replace('.md', '.cwl')
+    def _get_filename(file_path: str) -> str:
+        return os.path.split(file_path)[1]
 
     def _add_contents(self):
         contents = [
@@ -181,14 +183,36 @@ class CWLParser:
             doc = arg.get('doc', ' ').replace('\n', ' ')
             runs = arg['run']
             if isinstance(runs, str):
-                ref_uri = runs.replace(".cwl", ".md")
+                ref_uri = runs.replace('.cwl', '.md')
                 target = f'[{runs}]({ref_uri})'
+            elif runs.get('class').lower() == 'workflow':
+                file_name = self._handle_sub_workflow(runs)
+                target = f"[{file_name.replace('.md', '.cwl')}]({file_name})"
             else:
                 target = runs.get('baseCommand', 'command')
 
             data.append((name, target, doc))
 
         self.md_file.add_table(data=data)
+
+    def _handle_sub_workflow(self, data: Dict[str, Any]) -> str:
+        prepared_data = {
+            **data,
+            'cwlVersion': self.yaml_content['cwlVersion'],
+            'requirements': self.yaml_content['requirements'],
+        }
+        source_dir, basename = os.path.split(self.input_file_path)
+
+        with tempfile.NamedTemporaryFile(mode='w+', dir=source_dir, suffix=basename) as temp_file:
+            yaml.safe_dump(prepared_data, temp_file)
+
+            self.sub_workflow_counter += 1
+            output_file_path = self.output_file_path.replace('.md', f'_{self.sub_workflow_counter}.md')
+            image_file_path = self.output_file_path.replace('.md', f'_{self.sub_workflow_counter}.png')
+
+            CWLParser(temp_file.name, output_file_path, image_file_path).parse()
+
+            return self._get_filename(output_file_path)
 
 
 def main():
@@ -204,7 +228,7 @@ def main():
 
         input_file_path = os.path.join(os.path.abspath(args.input_dir), file_name)
         output_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '.md'))
-        image_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '_cwl.png'))
+        image_file_path = os.path.join(os.path.abspath(args.output_dir), file_name.replace('.cwl', '.png'))
 
         CWLParser(input_file_path, output_file_path, image_file_path).parse()
 
